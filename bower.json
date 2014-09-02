@@ -1,0 +1,12 @@
+{
+  "name": "coalesce-ember",
+  "version": "0.4.0+dev.5b16715b",
+  "license": "MIT",
+  "main": "coalesce-ember.js",
+  "keywords": [
+    "ember.js",
+    "orm",
+    "persistence",
+    "sync"
+  ]
+}
