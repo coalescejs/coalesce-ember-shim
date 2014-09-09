@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.5b16715b
+ * @version   0.4.0+dev.9570067c
  */
 define("coalesce-ember-test/_setup", [], function() {
   "use strict";
@@ -47,6 +47,46 @@ define("coalesce-ember-test/_setup", [], function() {
     PrototypeMixin.reopen({destroy: syncForTest()});
   };
   Ember.RSVP.Promise.prototype.then = syncForTest(Ember.RSVP.Promise.prototype.then);
+  return {};
+});
+
+define("coalesce-ember-test/collections/has_many_array", ['coalesce-ember/collections/has_many_array', 'coalesce-ember/model/model', 'coalesce-ember/model/model'], function($__0,$__2,$__4) {
+  "use strict";
+  var __moduleName = "coalesce-ember-test/collections/has_many_array";
+  if (!$__0 || !$__0.__esModule)
+    $__0 = {default: $__0};
+  if (!$__2 || !$__2.__esModule)
+    $__2 = {default: $__2};
+  if (!$__4 || !$__4.__esModule)
+    $__4 = {default: $__4};
+  var set$ = Ember.set;
+  var get$ = Ember.get;
+  var HasManyArray = $__0.default;
+  var Model = $__2.default;
+  var $__5 = $__4,
+      attr = $__5.attr,
+      belongsTo = $__5.belongsTo,
+      hasMany = $__5.hasMany;
+  describe('HasManyArray', function() {
+    return describe('.findProperty', function() {
+      beforeEach(function() {
+        return set$(this, 'Post', Model.extend({title: attr('string')}));
+      });
+      return it('works', function() {
+        var arr;
+        arr = new HasManyArray;
+        arr.pushObject(get$(this, 'Post').create({
+          id: '1',
+          title: 'test'
+        }));
+        arr.pushObject(get$(this, 'Post').create({
+          id: '2',
+          title: 'nope'
+        }));
+        return get$(expect(arr.findProperty('id', '1')), 'to').eql(get$(arr, 'firstObject'));
+      });
+    });
+  });
   return {};
 });
 
@@ -270,7 +310,9 @@ define("coalesce-ember-test/model", ['./support/app', 'coalesce-ember/model/mode
     describe('subclassing', function() {
       beforeEach(function() {
         set$(this, 'User', Model.extend({name: attr('string')}));
-        return set$(this, 'Admin', get$(this, 'User').extend({role: attr('string')}));
+        set$(get$(this, 'User'), 'typeKey', 'user');
+        set$(this, 'Admin', get$(this, 'User').extend({role: attr('string')}));
+        return set$(get$(this, 'Admin'), 'typeKey', 'admin');
       });
       it('can add fields', function() {
         return get$(get$(expect(get$(get$(this, 'Admin'), 'fields').get('role')), 'to'), 'exist');
@@ -405,6 +447,52 @@ define("coalesce-ember-test/relationships", ['./support/app', 'coalesce-ember/mo
   return {};
 });
 
+define("coalesce-ember-test/session", ['coalesce-ember/model/model', 'coalesce-ember/model/model', './support/app'], function($__0,$__2,$__4) {
+  "use strict";
+  var __moduleName = "coalesce-ember-test/session";
+  if (!$__0 || !$__0.__esModule)
+    $__0 = {default: $__0};
+  if (!$__2 || !$__2.__esModule)
+    $__2 = {default: $__2};
+  if (!$__4 || !$__4.__esModule)
+    $__4 = {default: $__4};
+  var set$ = Ember.set;
+  var get$ = Ember.get;
+  var Model = $__0.default;
+  var $__3 = $__2,
+      attr = $__3.attr,
+      belongsTo = $__3.belongsTo,
+      hasMany = $__3.hasMany;
+  var $__5 = $__4,
+      setupApp = $__5.setupApp,
+      teardownApp = $__5.teardownApp;
+  describe('Session', function() {
+    beforeEach(function() {
+      return setupApp.apply(this);
+    });
+    afterEach(function() {
+      return teardownApp.apply(this);
+    });
+    return describe('.isDirty', function() {
+      beforeEach(function() {
+        set$(this, 'Post', Model.extend({title: attr('string')}));
+        return set$(get$(this, 'Post'), 'typeKey', 'post');
+      });
+      return it('is true when model is dirty', function() {
+        var post;
+        post = get$(this, 'session').merge(get$(this, 'Post').create({
+          title: 'sup',
+          id: '1'
+        }));
+        get$(get$(get$(expect(get$(get$(this, 'session'), 'isDirty')), 'to'), 'be'), 'false');
+        set$(post, 'title', 'bro');
+        return get$(get$(get$(expect(get$(get$(this, 'session'), 'isDirty')), 'to'), 'be'), 'true');
+      });
+    });
+  });
+  return {};
+});
+
 define("coalesce-ember-test/support/app", [], function() {
   "use strict";
   var __moduleName = "coalesce-ember-test/support/app";
@@ -412,7 +500,6 @@ define("coalesce-ember-test/support/app", [], function() {
     var self = this;
     Ember.run(function() {
       self.App = Ember.Application.create({rootElement: '#ember-testing'});
-      self.App.setupForTesting();
       self.App.injectTestHelpers();
     });
     this.container = this.App.__container__;

@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.5b16715b
+ * @version   0.4.0+dev.9570067c
  */
 define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/model', './model/model', './collections/has_many_array'], function($__0,$__2,$__4,$__5,$__7,$__9) {
   "use strict";
@@ -120,6 +120,12 @@ define("coalesce-ember/collections/model_array", ['coalesce', 'coalesce/collecti
   var $__default = Ember.ArrayProxy.extend({
     session: null,
     meta: null,
+    init: function() {
+      if (!get(this, 'content')) {
+        set(this, 'content', []);
+      }
+      this._super.apply(this, arguments);
+    },
     arrayContentWillChange: function(index, removed, added) {
       for (var i = index; i < index + removed; i++) {
         var model = this.objectAt(i);
@@ -460,69 +466,64 @@ define("coalesce-ember/model/errors", ['coalesce/utils/copy'], function($__0) {
   };
 });
 
-define("coalesce-ember/model/model", ['coalesce/model/model'], function($__0) {
+define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/model', 'coalesce/model/field', 'coalesce/model/attribute', 'coalesce/model/has_many', 'coalesce/model/belongs_to'], function($__0,$__2,$__4,$__6,$__8,$__10) {
   "use strict";
   var __moduleName = "coalesce-ember/model/model";
   if (!$__0 || !$__0.__esModule)
     $__0 = {default: $__0};
-  var Model = $__0.default;
+  if (!$__2 || !$__2.__esModule)
+    $__2 = {default: $__2};
+  if (!$__4 || !$__4.__esModule)
+    $__4 = {default: $__4};
+  if (!$__6 || !$__6.__esModule)
+    $__6 = {default: $__6};
+  if (!$__8 || !$__8.__esModule)
+    $__8 = {default: $__8};
+  if (!$__10 || !$__10.__esModule)
+    $__10 = {default: $__10};
+  var applyEmber = $__0.default;
+  var Model = $__2.default;
+  var Field = $__4.default;
+  var CoreAttribute = $__6.default;
+  var CoreHasMany = $__8.default;
+  var CoreBelongsTo = $__10.default;
   var CoreObject = Ember.CoreObject;
   var Observable = Ember.Observable;
   var Mixin = Ember.Mixin;
   var merge = _.merge;
-  function EmberModel() {
-    return CoreObject.apply(this);
-  }
-  var PrototypeMixin = Mixin.create(CoreObject.PrototypeMixin);
-  PrototypeMixin.ownerConstructor = EmberModel;
-  EmberModel.PrototypeMixin = PrototypeMixin;
-  EmberModel.prototype = Object.create(Model.prototype);
-  var SPECIAL_PROPS = ['fields', 'attributes', 'relationships'];
-  var ModelClassProps = {};
-  for (var key in Model) {
-    if (!Model.hasOwnProperty(key))
-      continue;
-    if (SPECIAL_PROPS.indexOf(key) !== -1)
-      continue;
-    ModelClassProps[key] = Model[key];
-  }
-  var ClassMixin = Mixin.create(ModelClassProps, CoreObject.ClassMixin);
-  ClassMixin.reopen({extend: function() {
-      var klass = this._super.apply(this, arguments);
-      SPECIAL_PROPS.forEach(function(name) {
-        var desc = Object.getOwnPropertyDescriptor(Model, name);
-        Object.defineProperty(klass, name, desc);
-      });
-      return klass;
-    }});
-  ClassMixin.apply(EmberModel);
-  ClassMixin.ownerConstructor = EmberModel;
-  EmberModel.ClassMixin = ClassMixin;
-  EmberModel.proto = function() {
-    return this.prototype;
-  };
-  EmberModel = EmberModel.extend(Observable, {
-    init: function() {
-      Model.apply(this, arguments);
-      this._super.apply(this, arguments);
-    },
+  var EmberModel = applyEmber(Model, ['fields', 'ownFields', 'attributes', 'relationships'], Observable, {
     attributeWillChange: function(name) {
+      Model.prototype.attributeWillChange.apply(this, arguments);
       Ember.propertyWillChange(this, name);
     },
     attributeDidChange: function(name) {
+      Model.prototype.attributeDidChange.apply(this, arguments);
       Ember.propertyDidChange(this, name);
     },
     belongsToWillChange: function(name) {
+      Model.prototype.belongsToWillChange.apply(this, arguments);
       Ember.propertyWillChange(this, name);
     },
     belongsToDidChange: function(name) {
+      Model.prototype.belongsToDidChange.apply(this, arguments);
       Ember.propertyDidChange(this, name);
     },
     hasManyWillChange: function(name) {
+      Model.prototype.hasManyWillChange.apply(this, arguments);
       Ember.propertyWillChange(this, name);
     },
     hasManyDidChange: function(name) {
+      Model.prototype.hasManyDidChange.apply(this, arguments);
       Ember.propertyDidChange(this, name);
+    },
+    didDefineProperty: function(obj, keyName, value) {
+      if (value instanceof Attr) {
+        obj.constructor.defineField(new CoreAttribute(keyName, value));
+      } else if (value instanceof BelongsTo) {
+        obj.constructor.defineField(new CoreBelongsTo(keyName, value));
+      } else if (value instanceof HasMany) {
+        obj.constructor.defineField(new CoreHasMany(keyName, value));
+      }
     }
   });
   function Attr(type) {
@@ -578,30 +579,8 @@ define("coalesce-ember/model/model", ['coalesce/model/model'], function($__0) {
       return res;
     },
     extend: function() {
-      var schema = {
-        attributes: {},
-        relationships: {}
-      };
-      for (var i = 0; i < arguments.length; i++) {
-        var hash = arguments[i];
-        if (hash instanceof Mixin)
-          continue;
-        for (var key in hash) {
-          if (!hash.hasOwnProperty(key))
-            return;
-          var value = hash[key];
-          if (value instanceof Attr) {
-            delete hash[key];
-            schema.attributes[key] = value;
-          } else if (value instanceof HasMany || value instanceof BelongsTo) {
-            delete hash[key];
-            schema.relationships[key] = value;
-          }
-        }
-      }
       var klass = this._super.apply(this, arguments);
-      klass._fields = this._fields;
-      klass.defineSchema(schema);
+      klass.proto();
       return klass;
     }
   });
@@ -629,7 +608,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.5b16715b'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.9570067c'});
   }
   var $__default = Cs;
   return {
@@ -692,6 +671,64 @@ define("coalesce-ember/session", ['coalesce/session/session', './promise'], func
     }
   }, {}, Session);
   var $__default = EmberSession;
+  return {
+    get default() {
+      return $__default;
+    },
+    __esModule: true
+  };
+});
+
+define("coalesce-ember/utils/apply_ember", [], function() {
+  "use strict";
+  var __moduleName = "coalesce-ember/utils/apply_ember";
+  var CoreObject = Ember.CoreObject,
+      Mixin = Ember.Mixin;
+  function applyEmber(Type) {
+    var specialClassKeys = arguments[1] !== (void 0) ? arguments[1] : [];
+    for (var mixins = [],
+        $__0 = 2; $__0 < arguments.length; $__0++)
+      mixins[$__0 - 2] = arguments[$__0];
+    function cstor() {
+      return CoreObject.apply(this);
+    }
+    var PrototypeMixin = Mixin.create(CoreObject.PrototypeMixin);
+    PrototypeMixin.ownerConstructor = cstor;
+    cstor.PrototypeMixin = PrototypeMixin;
+    cstor.prototype = Object.create(Type.prototype);
+    var SpecialClassProps = {};
+    for (var key in Type) {
+      if (!Type.hasOwnProperty(key))
+        continue;
+      if (specialClassKeys.indexOf(key) !== -1)
+        continue;
+      SpecialClassProps[key] = Type[key];
+    }
+    var ClassMixin = Mixin.create(SpecialClassProps, CoreObject.ClassMixin);
+    ClassMixin.reopen({extend: function() {
+        var klass = this._super.apply(this, arguments);
+        specialClassKeys.forEach(function(name) {
+          var desc = Object.getOwnPropertyDescriptor(Type, name);
+          Object.defineProperty(klass, name, desc);
+        });
+        Object.defineProperty(klass, 'parentType', {get: function() {
+            return this.superclass;
+          }});
+        return klass;
+      }});
+    ClassMixin.apply(cstor);
+    ClassMixin.ownerConstructor = cstor;
+    cstor.ClassMixin = ClassMixin;
+    cstor.proto = function() {
+      return this.prototype;
+    };
+    mixins.unshift({init: function() {
+        Type.apply(this, arguments);
+        this._super.apply(this, arguments);
+      }});
+    return cstor.extend.apply(cstor, mixins);
+  }
+  var $__default = applyEmber;
   return {
     get default() {
       return $__default;
