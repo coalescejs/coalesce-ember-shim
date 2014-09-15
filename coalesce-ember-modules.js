@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.9570067c
+ * @version   0.4.0+dev.15459c02
  */
 define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/model', './model/model', './collections/has_many_array'], function($__0,$__2,$__4,$__5,$__7,$__9) {
   "use strict";
@@ -58,14 +58,26 @@ define("coalesce-ember/collections/has_many_array", ['./model_array'], function(
   var $__default = ModelArray.extend({
     name: null,
     owner: null,
-    session: Ember.computed.alias('owner.session'),
+    session: Ember.computed(function() {
+      return get(this, 'owner.session');
+    }).volatile(),
     replace: function(idx, amt, objects) {
-      if (this.session) {
+      var session = get(this, 'session');
+      if (session) {
         objects = objects.map(function(model) {
-          return this.session.add(model);
+          return session.add(model);
         }, this);
       }
       return this._super(idx, amt, objects);
+    },
+    objectAtContent: function(index) {
+      var content = get(this, 'content'),
+          model = content.objectAt(index),
+          session = get(this, 'session');
+      if (session && model) {
+        return session.add(model);
+      }
+      return model;
     },
     arrayContentWillChange: function(index, removed, added) {
       var model = get(this, 'owner'),
@@ -608,7 +620,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.9570067c'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.15459c02'});
   }
   var $__default = Cs;
   return {
