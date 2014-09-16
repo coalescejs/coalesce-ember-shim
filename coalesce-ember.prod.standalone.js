@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.152a23e1
+ * @version   0.4.0+dev.b790010a
  */
 (function() {
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsondiffpatch=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -9435,6 +9435,44 @@ define("coalesce-ember/collections/model_array", ['coalesce', 'coalesce/collecti
   };
 });
 
+define("coalesce-ember/container", ['coalesce/container', './debug/debug_adapter', './session', './model/errors'], function($__0,$__2,$__4,$__6) {
+  "use strict";
+  var __moduleName = "coalesce-ember/container";
+  if (!$__0 || !$__0.__esModule)
+    $__0 = {default: $__0};
+  if (!$__2 || !$__2.__esModule)
+    $__2 = {default: $__2};
+  if (!$__4 || !$__4.__esModule)
+    $__4 = {default: $__4};
+  if (!$__6 || !$__6.__esModule)
+    $__6 = {default: $__6};
+  var setupContainer = $__0.setupContainer;
+  var DebugAdapter = $__2.default;
+  var Session = $__4.default;
+  var Errors = $__6.default;
+  function setupContainerForEmber(container) {
+    setupContainer.apply(this, arguments);
+    container.register('model:errors', Errors);
+    container.register('session:base', Session);
+    container.register('session:main', container.lookupFactory('session:application') || Session);
+    container.typeInjection('controller', 'adapter', 'adapter:main');
+    container.typeInjection('controller', 'session', 'session:main');
+    container.typeInjection('route', 'adapter', 'adapter:main');
+    container.typeInjection('route', 'session', 'session:main');
+    if (Ember.DataAdapter) {
+      container.typeInjection('data-adapter', 'session', 'session:main');
+      container.register('data-adapter:main', DebugAdapter);
+    }
+  }
+  ;
+  return {
+    get setupContainer() {
+      return setupContainerForEmber;
+    },
+    __esModule: true
+  };
+});
+
 define("coalesce-ember/debug/debug_adapter", ['../model/model', '../promise', './debug_info'], function($__0,$__2,$__4) {
   "use strict";
   var __moduleName = "coalesce-ember/debug/debug_adapter";
@@ -9614,41 +9652,21 @@ define("coalesce-ember/debug/debug_info", ['../model/model'], function($__0) {
   return {};
 });
 
-define("coalesce-ember/initializers", ['coalesce', 'coalesce/container', './debug/debug_adapter', './session', './model/errors'], function($__0,$__2,$__4,$__6,$__8) {
+define("coalesce-ember/initializers", ['coalesce', './container'], function($__0,$__2) {
   "use strict";
   var __moduleName = "coalesce-ember/initializers";
   if (!$__0 || !$__0.__esModule)
     $__0 = {default: $__0};
   if (!$__2 || !$__2.__esModule)
     $__2 = {default: $__2};
-  if (!$__4 || !$__4.__esModule)
-    $__4 = {default: $__4};
-  if (!$__6 || !$__6.__esModule)
-    $__6 = {default: $__6};
-  if (!$__8 || !$__8.__esModule)
-    $__8 = {default: $__8};
   var Coalesce = $__0.default;
   var setupContainer = $__2.setupContainer;
-  var DebugAdapter = $__4.default;
-  var Session = $__6.default;
-  var Errors = $__8.default;
   Ember.onLoad('Ember.Application', function(Application) {
     Application.initializer({
       name: "coalesce.container",
       initialize: function(container, application) {
         Coalesce.__container__ = container;
         setupContainer(container, application);
-        container.register('model:errors', Errors);
-        container.register('session:base', Session);
-        container.register('session:main', container.lookupFactory('session:application') || Session);
-        container.typeInjection('controller', 'adapter', 'adapter:main');
-        container.typeInjection('controller', 'session', 'session:main');
-        container.typeInjection('route', 'adapter', 'adapter:main');
-        container.typeInjection('route', 'session', 'session:main');
-        if (Ember.DataAdapter) {
-          container.typeInjection('data-adapter', 'session', 'session:main');
-          container.register('data-adapter:main', DebugAdapter);
-        }
       }
     });
   });
@@ -9840,7 +9858,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.152a23e1'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.b790010a'});
   }
   var $__default = Cs;
   return {

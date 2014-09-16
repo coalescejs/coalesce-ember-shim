@@ -1,11 +1,12 @@
 {
   "name": "coalesce-ember",
-  "version": "0.4.0+dev.152a23e1",
+  "version": "0.4.0+dev.b790010a",
   "license": "MIT",
   "main": "coalesce-ember.js",
   "ignore": [
     "docs",
-    "test"
+    "test",
+    "testem.js"
   ],
   "keywords": [
     "coalesce-ember",
