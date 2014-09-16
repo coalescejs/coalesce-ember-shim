@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.947482a4
+ * @version   0.4.0+dev.152a23e1
  */
 (function() {
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsondiffpatch=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -3769,7 +3769,7 @@ System.get("traceur-runtime@0.0.60/src/runtime/polyfills/polyfills" + '');
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce/master/LICENSE
- * @version   0.4.0+dev.56092546
+ * @version   0.4.0+dev.ac5b1b6c
  */
 define("coalesce", ['./namespace', './container', './container', './adapter', './id_manager', './collections/model_array', './collections/model_set', './collections/has_many_array', './merge/base', './merge/per_field', './model/model', './model/diff', './model/errors', './rest/serializers/errors', './rest/serializers/payload', './rest/embedded_manager', './rest/operation', './rest/operation_graph', './rest/payload', './rest/rest_adapter', './active_model/active_model_adapter', './active_model/serializers/model', './serializers/base', './serializers/belongs_to', './serializers/boolean', './serializers/date', './serializers/has_many', './serializers/id', './serializers/number', './serializers/model', './serializers/revision', './serializers/string', './session/collection_manager', './session/inverse_manager', './session/session', './utils/is_equal', './utils/inflector'], function($__0,$__2,$__4,$__6,$__8,$__10,$__12,$__14,$__16,$__18,$__20,$__22,$__23,$__25,$__27,$__29,$__31,$__33,$__35,$__37,$__39,$__41,$__43,$__45,$__47,$__49,$__51,$__53,$__55,$__57,$__59,$__61,$__63,$__65,$__67,$__69,$__71) {
   "use strict";
@@ -5732,19 +5732,22 @@ define("coalesce/model/has_many", ['../namespace', './relationship', '../collect
   var HasManyArray = $__4.default;
   var isEqual = $__6.default;
   var copy = $__8.default;
-  var HasMany = function HasMany() {
-    $traceurRuntime.defaultSuperCall(this, $HasMany.prototype, arguments);
+  var defaults = _.defaults;
+  var HasMany = function HasMany(name, options) {
+    defaults(options, {collectionType: HasManyArray});
+    $traceurRuntime.superCall(this, $HasMany.prototype, "constructor", [name, options]);
   };
   var $HasMany = HasMany;
   ($traceurRuntime.createClass)(HasMany, {defineProperty: function(prototype) {
       var name = this.name;
+      var field = this;
       Object.defineProperty(prototype, name, {
         enumerable: true,
         get: function() {
           var value = this._relationships[name];
           if (this.isNew && !value) {
             var content = value;
-            value = this._relationships[name] = new Coalesce.HasManyArray();
+            value = this._relationships[name] = new field.collectionType();
             value.owner = this;
             value.name = name;
             if (content) {
@@ -5757,10 +5760,10 @@ define("coalesce/model/has_many", ['../namespace', './relationship', '../collect
           var oldValue = this._relationships[name];
           if (oldValue === value)
             return;
-          if (value && value instanceof Coalesce.HasManyArray) {
+          if (value && value instanceof field.collectionType) {
             value = copy(value);
           }
-          if (oldValue && oldValue instanceof Coalesce.HasManyArray) {
+          if (oldValue && oldValue instanceof field.collectionType) {
             oldValue.clear();
             if (value) {
               oldValue.addObjects(value);
@@ -5768,7 +5771,7 @@ define("coalesce/model/has_many", ['../namespace', './relationship', '../collect
           } else {
             this.hasManyWillChange(name);
             var content = value;
-            value = this._relationships[name] = new Coalesce.HasManyArray();
+            value = this._relationships[name] = new field.collectionType();
             value.owner = this;
             value.name = name;
             if (content) {
@@ -6331,7 +6334,7 @@ define("coalesce/namespace", [], function() {
     } catch (e) {}
   }
   var Coalesce = {
-    VERSION: '0.4.0+dev.56092546',
+    VERSION: '0.4.0+dev.ac5b1b6c',
     Promise: Promise,
     ajax: ajax,
     run: Backburner && new Backburner(['actions'])
@@ -9270,7 +9273,6 @@ define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/
   Coalesce.Promise = Ember.RSVP.Promise;
   Coalesce.ajax = Ember.$.ajax;
   Coalesce.run = Ember.run;
-  Coalesce.HasManyArray = HasManyArray;
   _.defaults(Cs, Coalesce);
   var $__default = Cs;
   return {
@@ -9712,7 +9714,7 @@ define("coalesce-ember/model/errors", ['coalesce/utils/copy'], function($__0) {
   };
 });
 
-define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/model', 'coalesce/model/field', 'coalesce/model/attribute', 'coalesce/model/has_many', 'coalesce/model/belongs_to'], function($__0,$__2,$__4,$__6,$__8,$__10) {
+define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/model', 'coalesce/model/field', 'coalesce/model/attribute', 'coalesce/model/has_many', 'coalesce/model/belongs_to', '../collections/has_many_array'], function($__0,$__2,$__4,$__6,$__8,$__10,$__12) {
   "use strict";
   var __moduleName = "coalesce-ember/model/model";
   if (!$__0 || !$__0.__esModule)
@@ -9727,16 +9729,20 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
     $__8 = {default: $__8};
   if (!$__10 || !$__10.__esModule)
     $__10 = {default: $__10};
+  if (!$__12 || !$__12.__esModule)
+    $__12 = {default: $__12};
   var applyEmber = $__0.default;
   var Model = $__2.default;
   var Field = $__4.default;
   var CoreAttribute = $__6.default;
   var CoreHasMany = $__8.default;
   var CoreBelongsTo = $__10.default;
+  var HasManyArray = $__12.default;
   var CoreObject = Ember.CoreObject;
   var Observable = Ember.Observable;
   var Mixin = Ember.Mixin;
-  var merge = _.merge;
+  var merge = _.merge,
+      defaults = _.defaults;
   var EmberModel = applyEmber(Model, ['fields', 'ownFields', 'attributes', 'relationships'], Observable, {
     attributeWillChange: function(name) {
       Model.prototype.attributeWillChange.apply(this, arguments);
@@ -9774,7 +9780,7 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   });
   function Attr(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.type = type;
+    defaults(options, {type: type});
     merge(this, options);
     return this;
   }
@@ -9784,8 +9790,11 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   }
   function HasMany(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.kind = 'hasMany';
-    this.type = type;
+    defaults(options, {
+      kind: 'hasMany',
+      collectionType: HasManyArray,
+      type: type
+    });
     merge(this, options);
     return this;
   }
@@ -9795,8 +9804,10 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   }
   function BelongsTo(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.kind = 'belongsTo';
-    this.type = type;
+    defaults(options, {
+      kind: 'belongsTo',
+      type: type
+    });
     merge(this, options);
     return this;
   }
@@ -9854,7 +9865,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.947482a4'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.152a23e1'});
   }
   var $__default = Cs;
   return {

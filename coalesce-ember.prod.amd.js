@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.947482a4
+ * @version   0.4.0+dev.152a23e1
  */
 define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/model', './model/model', './collections/has_many_array'], function($__0,$__2,$__4,$__5,$__7,$__9) {
   "use strict";
@@ -36,7 +36,6 @@ define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/
   Coalesce.Promise = Ember.RSVP.Promise;
   Coalesce.ajax = Ember.$.ajax;
   Coalesce.run = Ember.run;
-  Coalesce.HasManyArray = HasManyArray;
   _.defaults(Cs, Coalesce);
   var $__default = Cs;
   return {
@@ -478,7 +477,7 @@ define("coalesce-ember/model/errors", ['coalesce/utils/copy'], function($__0) {
   };
 });
 
-define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/model', 'coalesce/model/field', 'coalesce/model/attribute', 'coalesce/model/has_many', 'coalesce/model/belongs_to'], function($__0,$__2,$__4,$__6,$__8,$__10) {
+define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/model', 'coalesce/model/field', 'coalesce/model/attribute', 'coalesce/model/has_many', 'coalesce/model/belongs_to', '../collections/has_many_array'], function($__0,$__2,$__4,$__6,$__8,$__10,$__12) {
   "use strict";
   var __moduleName = "coalesce-ember/model/model";
   if (!$__0 || !$__0.__esModule)
@@ -493,16 +492,20 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
     $__8 = {default: $__8};
   if (!$__10 || !$__10.__esModule)
     $__10 = {default: $__10};
+  if (!$__12 || !$__12.__esModule)
+    $__12 = {default: $__12};
   var applyEmber = $__0.default;
   var Model = $__2.default;
   var Field = $__4.default;
   var CoreAttribute = $__6.default;
   var CoreHasMany = $__8.default;
   var CoreBelongsTo = $__10.default;
+  var HasManyArray = $__12.default;
   var CoreObject = Ember.CoreObject;
   var Observable = Ember.Observable;
   var Mixin = Ember.Mixin;
-  var merge = _.merge;
+  var merge = _.merge,
+      defaults = _.defaults;
   var EmberModel = applyEmber(Model, ['fields', 'ownFields', 'attributes', 'relationships'], Observable, {
     attributeWillChange: function(name) {
       Model.prototype.attributeWillChange.apply(this, arguments);
@@ -540,7 +543,7 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   });
   function Attr(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.type = type;
+    defaults(options, {type: type});
     merge(this, options);
     return this;
   }
@@ -550,8 +553,11 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   }
   function HasMany(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.kind = 'hasMany';
-    this.type = type;
+    defaults(options, {
+      kind: 'hasMany',
+      collectionType: HasManyArray,
+      type: type
+    });
     merge(this, options);
     return this;
   }
@@ -561,8 +567,10 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   }
   function BelongsTo(type) {
     var options = arguments[1] !== (void 0) ? arguments[1] : {};
-    this.kind = 'belongsTo';
-    this.type = type;
+    defaults(options, {
+      kind: 'belongsTo',
+      type: type
+    });
     merge(this, options);
     return this;
   }
@@ -620,7 +628,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.947482a4'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.152a23e1'});
   }
   var $__default = Cs;
   return {
