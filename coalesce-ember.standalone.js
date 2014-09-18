@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.b790010a
+ * @version   0.4.0+dev.dcda8a4f
  */
 (function() {
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.jsondiffpatch=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -3769,7 +3769,7 @@ System.get("traceur-runtime@0.0.60/src/runtime/polyfills/polyfills" + '');
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce/master/LICENSE
- * @version   0.4.0+dev.ac5b1b6c
+ * @version   0.4.0+dev.f91be6b7
  */
 define("coalesce", ['./namespace', './container', './container', './adapter', './id_manager', './collections/model_array', './collections/model_set', './collections/has_many_array', './merge/base', './merge/per_field', './model/model', './model/diff', './model/errors', './rest/serializers/errors', './rest/serializers/payload', './rest/embedded_manager', './rest/operation', './rest/operation_graph', './rest/payload', './rest/rest_adapter', './active_model/active_model_adapter', './active_model/serializers/model', './serializers/base', './serializers/belongs_to', './serializers/boolean', './serializers/date', './serializers/has_many', './serializers/id', './serializers/number', './serializers/model', './serializers/revision', './serializers/string', './session/collection_manager', './session/inverse_manager', './session/session', './utils/is_equal', './utils/inflector'], function($__0,$__2,$__4,$__6,$__8,$__10,$__12,$__14,$__16,$__18,$__20,$__22,$__23,$__25,$__27,$__29,$__31,$__33,$__35,$__37,$__39,$__41,$__43,$__45,$__47,$__49,$__51,$__53,$__55,$__57,$__59,$__61,$__63,$__65,$__67,$__69,$__71) {
   "use strict";
@@ -5860,7 +5860,13 @@ define("coalesce/model/model", ['../namespace', '../utils/base_class', '../colle
       return this._meta['_id'];
     },
     set id(value) {
-      return this._meta['_id'] = value;
+      var oldValue = this._meta['_id'];
+      if (oldValue === value)
+        return;
+      this.metaWillChange('id');
+      this._meta['_id'] = value;
+      this.metaDidChange('id');
+      return value;
     },
     get clientId() {
       return this._meta['_clientId'];
@@ -6022,6 +6028,8 @@ define("coalesce/model/model", ['../namespace', '../utils/base_class', '../colle
       }, this);
       return res;
     },
+    metaWillChange: function(name) {},
+    metaDidChange: function(name) {},
     attributeWillChange: function(name) {
       var session = this.session;
       if (session) {
@@ -6334,7 +6342,7 @@ define("coalesce/namespace", [], function() {
     } catch (e) {}
   }
   var Coalesce = {
-    VERSION: '0.4.0+dev.ac5b1b6c',
+    VERSION: '0.4.0+dev.f91be6b7',
     Promise: Promise,
     ajax: ajax,
     run: Backburner && new Backburner(['actions'])
@@ -9762,6 +9770,20 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   var merge = _.merge,
       defaults = _.defaults;
   var EmberModel = applyEmber(Model, ['fields', 'ownFields', 'attributes', 'relationships'], Observable, {
+    metaWillChange: function(name) {
+      Model.prototype.metaWillChange.apply(this, arguments);
+      Ember.propertyWillChange(this, name);
+      if (name === 'id') {
+        Ember.propertyWillChange(this, 'isNew');
+      }
+    },
+    metaDidChange: function(name) {
+      Model.prototype.metaDidChange.apply(this, arguments);
+      Ember.propertyDidChange(this, name);
+      if (name === 'id') {
+        Ember.propertyDidChange(this, 'isNew');
+      }
+    },
     attributeWillChange: function(name) {
       Model.prototype.attributeWillChange.apply(this, arguments);
       Ember.propertyWillChange(this, name);
@@ -9883,7 +9905,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.b790010a'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.dcda8a4f'});
   }
   var $__default = Cs;
   return {

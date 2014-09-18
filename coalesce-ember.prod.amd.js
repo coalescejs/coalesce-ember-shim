@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.b790010a
+ * @version   0.4.0+dev.dcda8a4f
  */
 define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/model', './model/model', './collections/has_many_array'], function($__0,$__2,$__4,$__5,$__7,$__9) {
   "use strict";
@@ -525,6 +525,20 @@ define("coalesce-ember/model/model", ['../utils/apply_ember', 'coalesce/model/mo
   var merge = _.merge,
       defaults = _.defaults;
   var EmberModel = applyEmber(Model, ['fields', 'ownFields', 'attributes', 'relationships'], Observable, {
+    metaWillChange: function(name) {
+      Model.prototype.metaWillChange.apply(this, arguments);
+      Ember.propertyWillChange(this, name);
+      if (name === 'id') {
+        Ember.propertyWillChange(this, 'isNew');
+      }
+    },
+    metaDidChange: function(name) {
+      Model.prototype.metaDidChange.apply(this, arguments);
+      Ember.propertyDidChange(this, name);
+      if (name === 'id') {
+        Ember.propertyDidChange(this, 'isNew');
+      }
+    },
     attributeWillChange: function(name) {
       Model.prototype.attributeWillChange.apply(this, arguments);
       Ember.propertyWillChange(this, name);
@@ -646,7 +660,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.b790010a'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.dcda8a4f'});
   }
   var $__default = Cs;
   return {
