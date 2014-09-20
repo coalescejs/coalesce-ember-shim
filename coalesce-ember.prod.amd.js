@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.dcda8a4f
+ * @version   0.4.0+dev.98e765d4
  */
 define("coalesce-ember", ['./namespace', 'coalesce', './initializers', './model/model', './model/model', './collections/has_many_array'], function($__0,$__2,$__4,$__5,$__7,$__9) {
   "use strict";
@@ -660,7 +660,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.dcda8a4f'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.98e765d4'});
   }
   var $__default = Cs;
   return {
