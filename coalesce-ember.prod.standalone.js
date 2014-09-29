@@ -3,7 +3,7 @@
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce-ember/master/LICENSE
- * @version   0.4.0+dev.98e765d4
+ * @version   0.4.0+dev.6cfcc61a
  */
 (function() {
 var define, requireModule, require, requirejs;
@@ -2519,7 +2519,7 @@ System.get("traceur-runtime@0.0.60/src/runtime/polyfills/polyfills" + '');
  * @copyright Copyright 2014 Gordon L. Hempton and contributors
  * @license   Licensed under MIT license
  *            See https://raw.github.com/coalescejs/coalesce/master/LICENSE
- * @version   0.4.0+dev.70b0561d
+ * @version   0.4.0+dev.2eba6378
  */
 define("coalesce", ['./namespace', './container', './container', './adapter', './id_manager', './collections/model_array', './collections/model_set', './collections/has_many_array', './merge/base', './merge/per_field', './model/model', './model/diff', './model/errors', './rest/serializers/errors', './rest/serializers/payload', './rest/embedded_manager', './rest/operation', './rest/operation_graph', './rest/payload', './rest/rest_adapter', './active_model/active_model_adapter', './active_model/serializers/model', './serializers/base', './serializers/belongs_to', './serializers/boolean', './serializers/date', './serializers/has_many', './serializers/id', './serializers/number', './serializers/model', './serializers/revision', './serializers/string', './session/collection_manager', './session/inverse_manager', './session/session', './utils/is_equal', './utils/inflector'], function($__0,$__2,$__4,$__6,$__8,$__10,$__12,$__14,$__16,$__18,$__20,$__22,$__23,$__25,$__27,$__29,$__31,$__33,$__35,$__37,$__39,$__41,$__43,$__45,$__47,$__49,$__51,$__53,$__55,$__57,$__59,$__61,$__63,$__65,$__67,$__69,$__71) {
   "use strict";
@@ -4409,6 +4409,9 @@ define("coalesce/model/errors", ['../utils/base_class'], function($__0) {
   };
   var $Errors = Errors;
   ($traceurRuntime.createClass)(Errors, {
+    set: function(name, value) {
+      this[name] = value;
+    },
     forEach: function(callback, binding) {
       for (var key in this) {
         if (!this.hasOwnProperty(key))
@@ -4573,12 +4576,12 @@ define("coalesce/model/model", ['../namespace', '../utils/base_class', '../colle
       classify = $__23.classify;
   var Model = function Model(fields) {
     this._meta = {
-      _id: null,
-      _clientId: null,
-      _rev: null,
-      _clientRev: 0,
-      _deleted: false,
-      _errors: null
+      id: null,
+      clientId: null,
+      rev: null,
+      clientRev: 0,
+      isDeleted: false,
+      errors: null
     };
     this._attributes = {};
     this._relationships = {};
@@ -4593,46 +4596,40 @@ define("coalesce/model/model", ['../namespace', '../utils/base_class', '../colle
   var $Model = Model;
   ($traceurRuntime.createClass)(Model, {
     get id() {
-      return this._meta['_id'];
+      return getMeta.call(this, 'id');
     },
     set id(value) {
-      var oldValue = this._meta['_id'];
-      if (oldValue === value)
-        return;
-      this.metaWillChange('id');
-      this._meta['_id'] = value;
-      this.metaDidChange('id');
-      return value;
+      return setMeta.call(this, 'id', value);
     },
     get clientId() {
-      return this._meta['_clientId'];
+      return getMeta.call(this, 'clientId');
     },
     set clientId(value) {
-      return this._meta['_clientId'] = value;
+      return setMeta.call(this, 'clientId', value);
     },
     get rev() {
-      return this._meta['_rev'];
+      return getMeta.call(this, 'rev');
     },
     set rev(value) {
-      return this._meta['_rev'] = value;
+      return setMeta.call(this, 'rev', value);
     },
     get clientRev() {
-      return this._meta['_clientRev'];
+      return getMeta.call(this, 'clientRev');
     },
     set clientRev(value) {
-      return this._meta['_clientRev'] = value;
+      return setMeta.call(this, 'clientRev', value);
     },
     get isDeleted() {
-      return this._meta['_deleted'];
+      return getMeta.call(this, 'isDeleted');
     },
     set isDeleted(value) {
-      return this._meta['_deleted'] = value;
+      return setMeta.call(this, 'isDeleted', value);
     },
     get errors() {
-      return this._meta['_errors'];
+      return getMeta.call(this, 'errors');
     },
     set errors(value) {
-      return this._meta['_errors'] = value;
+      return setMeta.call(this, 'errors', value);
     },
     get isModel() {
       return true;
@@ -5009,6 +5006,18 @@ define("coalesce/model/model", ['../namespace', '../utils/base_class', '../colle
       return session[name].apply(session, args);
     };
   }
+  function getMeta(name) {
+    return this._meta[name];
+  }
+  function setMeta(name, value) {
+    var oldValue = this._meta[name];
+    if (oldValue === value)
+      return oldValue;
+    this.metaWillChange(name);
+    this._meta[name] = value;
+    this.metaDidChange(name);
+    return value;
+  }
   Model.reopen({
     load: sessionAlias('loadModel'),
     refresh: sessionAlias('refresh'),
@@ -5072,7 +5081,7 @@ define("coalesce/namespace", [], function() {
     } catch (e) {}
   }
   var Coalesce = {
-    VERSION: '0.4.0+dev.70b0561d',
+    VERSION: '0.4.0+dev.2eba6378',
     Promise: Promise,
     ajax: ajax,
     run: Backburner && new Backburner(['actions'])
@@ -6056,7 +6065,7 @@ define("coalesce/rest/serializers/errors", ['../../serializers/base', '../../err
       var Type = this.container.lookupFactory('model:errors');
       var res = Type.create();
       for (var key in serialized) {
-        res[this.transformPropertyKey(key)] = serialized[key];
+        res.set(this.transformPropertyKey(key), serialized[key]);
       }
       if (xhr) {
         res.status = xhr.status;
@@ -8629,7 +8638,7 @@ define("coalesce-ember/namespace", [], function() {
   var __moduleName = "coalesce-ember/namespace";
   var Cs;
   if ('undefined' === typeof Cs) {
-    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.98e765d4'});
+    Cs = Ember.Namespace.create({VERSION: '0.4.0+dev.6cfcc61a'});
   }
   var $__default = Cs;
   return {
